@@ -1,0 +1,20 @@
+package com.ujc.students.dao;
+
+import com.ujc.students.model.Pedido;
+import com.ujc.students.model.Pedido.EstadoPedido;
+import java.util.List;
+
+public interface PedidoDao {
+
+    void save(Pedido pedido);
+    void update(Pedido pedido);
+    void delete(Long id);
+    Pedido findById(Long id);
+    List<Pedido> findAll();
+
+    void criarPedido(Pedido pedido);
+    void actualizarEstado(Long pedidoId, EstadoPedido novoEstado);
+    void cancelarPedido(Long pedidoId);
+    List<Pedido> listarPorComprador(Long compradorId);
+    List<Pedido> listarPorEstado(EstadoPedido estado);
+}
