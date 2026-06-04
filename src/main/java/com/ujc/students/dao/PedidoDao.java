@@ -8,13 +8,13 @@ public interface PedidoDao {
 
     void save(Pedido pedido);
     void update(Pedido pedido);
-    void delete(Long id);
-    Pedido findById(Long id);
+    void delete(Integer id);
+    Pedido findById(Integer id);
     List<Pedido> findAll();
 
     void criarPedido(Pedido pedido);
-    void actualizarEstado(Long pedidoId, EstadoPedido novoEstado);
-    void cancelarPedido(Long pedidoId);
-    List<Pedido> listarPorComprador(Long compradorId);
+    void actualizarEstado(Integer pedidoId, EstadoPedido novoEstado);
+    void cancelarPedido(Integer pedidoId);
+    List<Pedido> listarPorComprador(Integer compradorId);
     List<Pedido> listarPorEstado(EstadoPedido estado);
 }

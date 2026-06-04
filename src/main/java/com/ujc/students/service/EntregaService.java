@@ -8,12 +8,12 @@ public interface EntregaService {
 
     void salvar(Entrega entrega);
     void editar(Entrega entrega);
-    void excluir(Long id);
-    Entrega buscarPorId(Long id);
+    void excluir(Integer id);
+    Entrega buscarPorId(Integer id);
     List<Entrega> buscarTodos();
 
     void criarEntrega(Entrega entrega);
-    void confirmarEntrega(Long entregaId);
+    void confirmarEntrega(Integer entregaId);
     List<Entrega> listarPorProvinciaDestino(String provincia);
     List<Entrega> listarPorEstado(EstadoEntrega estado);
 }

@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 @SuppressWarnings("serial")
 @Entity
 @Table(name = "compradores")
-public class Comprador extends AbstractEntity<Long> {
+public class Comprador extends AbstractEntity<Integer> {
 
     @Column(name = "nome_empresa", nullable = false, length = 150)
     private String nomeEmpresa;

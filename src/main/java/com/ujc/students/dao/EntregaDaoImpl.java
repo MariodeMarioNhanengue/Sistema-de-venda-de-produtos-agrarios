@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-public class EntregaDaoImpl extends AbstractDao<Entrega, Long> implements EntregaDao {
+public class EntregaDaoImpl extends AbstractDao<Entrega, Integer> implements EntregaDao {
 
     @Autowired
     private PedidoDao pedidoDao;
@@ -27,7 +27,7 @@ public class EntregaDaoImpl extends AbstractDao<Entrega, Long> implements Entreg
     }
 
     @Override
-    public void confirmarEntrega(Long entregaId) {
+    public void confirmarEntrega(Integer entregaId) {
         Entrega entrega = findById(entregaId);
         if (entrega == null)
             throw new IllegalArgumentException("Entrega não encontrada: " + entregaId);

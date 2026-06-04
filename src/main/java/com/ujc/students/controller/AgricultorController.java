@@ -25,7 +25,7 @@ public class AgricultorController {
 
     // GET /agricultor/{id} — Consultar agricultor por ID
     @GetMapping("/{id}")
-    public ResponseEntity<Agricultor> buscarPorId(@PathVariable Long id) {
+    public ResponseEntity<Agricultor> buscarPorId(@PathVariable Integer id) {
         Agricultor agricultor = service.buscarPorId(id);
         if (agricultor == null) {
             return ResponseEntity.notFound().build();
@@ -49,7 +49,7 @@ public class AgricultorController {
 
     // PUT /agricultor/{id} — Actualizar dados de agricultor
     @PutMapping("/{id}")
-    public ResponseEntity<Void> actualizar(@PathVariable Long id,
+    public ResponseEntity<Void> actualizar(@PathVariable Integer id,
                                            @RequestBody Agricultor agricultor) {
         Agricultor existente = service.buscarPorId(id);
         if (existente == null) {
@@ -62,7 +62,7 @@ public class AgricultorController {
 
     // DELETE /agricultor/{id} — Remover agricultor
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> remover(@PathVariable Long id) {
+    public ResponseEntity<Void> remover(@PathVariable Integer id) {
         Agricultor existente = service.buscarPorId(id);
         if (existente == null) {
             return ResponseEntity.notFound().build();

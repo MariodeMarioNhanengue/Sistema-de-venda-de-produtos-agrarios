@@ -26,13 +26,13 @@ public class EntregaServiceImpl implements EntregaService {
     }
 
     @Override
-    public void excluir(Long id) {
+    public void excluir(Integer id) {
         dao.delete(id);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Entrega buscarPorId(Long id) {
+    public Entrega buscarPorId(Integer id) {
         return dao.findById(id);
     }
 
@@ -48,7 +48,7 @@ public class EntregaServiceImpl implements EntregaService {
     }
 
     @Override
-    public void confirmarEntrega(Long entregaId) {
+    public void confirmarEntrega(Integer entregaId) {
         dao.confirmarEntrega(entregaId);
     }
 

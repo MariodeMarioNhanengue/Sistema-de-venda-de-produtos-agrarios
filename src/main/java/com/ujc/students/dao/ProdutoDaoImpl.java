@@ -6,10 +6,10 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Repository
-public class ProdutoDaoImpl extends AbstractDao<Produto, Long> implements ProdutoDao {
+public class ProdutoDaoImpl extends AbstractDao<Produto, Integer> implements ProdutoDao {
 
     @Override
-    public List<Produto> listarPorAgricultor(Long agricultorId) {
+    public List<Produto> listarPorAgricultor(Integer agricultorId) {
         return createQuery(
             "SELECT p FROM Produto p WHERE p.agricultor.id = ?1", agricultorId);
     }
@@ -34,7 +34,7 @@ public class ProdutoDaoImpl extends AbstractDao<Produto, Long> implements Produt
     }
 
     @Override
-    public void reduzirStock(Long produtoId, BigDecimal quantidade) {
+    public void reduzirStock(Integer produtoId, BigDecimal quantidade) {
         Produto produto = findById(produtoId);
         if (produto == null)
             throw new IllegalArgumentException("Produto não encontrado: " + produtoId);

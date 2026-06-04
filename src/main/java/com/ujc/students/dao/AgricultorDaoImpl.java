@@ -5,7 +5,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public class AgricultorDaoImpl extends AbstractDao<Agricultor, Long> implements AgricultorDao {
+public class AgricultorDaoImpl extends AbstractDao<Agricultor, Integer> implements AgricultorDao {
 
     @Override
     public List<Agricultor> buscarPorProvincia(String provincia) {

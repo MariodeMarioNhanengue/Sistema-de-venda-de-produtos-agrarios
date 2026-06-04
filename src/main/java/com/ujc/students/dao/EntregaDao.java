@@ -8,12 +8,12 @@ public interface EntregaDao {
 
     void save(Entrega entrega);
     void update(Entrega entrega);
-    void delete(Long id);
-    Entrega findById(Long id);
+    void delete(Integer id);
+    Entrega findById(Integer id);
     List<Entrega> findAll();
 
     void criarEntrega(Entrega entrega);
-    void confirmarEntrega(Long entregaId);
+    void confirmarEntrega(Integer entregaId);
     List<Entrega> listarPorProvinciaDestino(String provincia);
     List<Entrega> listarPorEstado(EstadoEntrega estado);
 }

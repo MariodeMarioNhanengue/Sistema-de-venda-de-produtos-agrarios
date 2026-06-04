@@ -7,8 +7,8 @@ public interface CompradorDao {
 
     void save(Comprador comprador);
     void update(Comprador comprador);
-    void delete(Long id);
-    Comprador findById(Long id);
+    void delete(Integer id);
+    Comprador findById(Integer id);
     List<Comprador> findAll();
 
     List<Comprador> buscarPorProvinciaResidencia(String provincia);

@@ -26,13 +26,13 @@ public class PedidoServiceImpl implements PedidoService {
     }
 
     @Override
-    public void excluir(Long id) {
+    public void excluir(Integer id) {
         dao.delete(id);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Pedido buscarPorId(Long id) {
+    public Pedido buscarPorId(Integer id) {
         return dao.findById(id);
     }
 
@@ -48,18 +48,18 @@ public class PedidoServiceImpl implements PedidoService {
     }
 
     @Override
-    public void actualizarEstado(Long pedidoId, EstadoPedido novoEstado) {
+    public void actualizarEstado(Integer pedidoId, EstadoPedido novoEstado) {
         dao.actualizarEstado(pedidoId, novoEstado);
     }
 
     @Override
-    public void cancelarPedido(Long pedidoId) {
+    public void cancelarPedido(Integer pedidoId) {
         dao.cancelarPedido(pedidoId);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<Pedido> listarPorComprador(Long compradorId) {
+    public List<Pedido> listarPorComprador(Integer compradorId) {
         return dao.listarPorComprador(compradorId);
     }
 

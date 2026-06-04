@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 @SuppressWarnings("serial")
 @Entity
 @Table(name = "produtos")
-public class Produto extends AbstractEntity<Long> {
+public class Produto extends AbstractEntity<Integer> {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "agricultor_id", nullable = false)

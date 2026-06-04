@@ -19,15 +19,15 @@ public abstract class AbstractDao<T, PK extends Serializable> {
     }
 
     public void save(T entity) {
-        entityManager.persist(entity);
+        // código omitido
     }
 
     public void update(T entity) {
-    	entityManager.persist(entity);
+        // código omitido
     }
 
     public void delete(PK id) {
-    	entityManager.remove(entityManager.getReference(entityClass,id));
+        // código omitido
     }
 
     public T findById(PK id) {

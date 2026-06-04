@@ -7,8 +7,8 @@ public interface AgricultorDao {
 
     void save(Agricultor agricultor);
     void update(Agricultor agricultor);
-    void delete(Long id);
-    Agricultor findById(Long id);
+    void delete(Integer id);
+    Agricultor findById(Integer id);
     List<Agricultor> findAll();
 
     List<Agricultor> buscarPorProvincia(String provincia);

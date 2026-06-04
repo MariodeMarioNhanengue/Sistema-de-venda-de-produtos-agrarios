@@ -5,7 +5,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public class CompradorDaoImpl extends AbstractDao<Comprador, Long> implements CompradorDao {
+public class CompradorDaoImpl extends AbstractDao<Comprador, Integer> implements CompradorDao {
 
     @Override
     public List<Comprador> buscarPorProvinciaResidencia(String provincia) {

@@ -8,13 +8,13 @@ public interface ProdutoDao {
 
     void save(Produto produto);
     void update(Produto produto);
-    void delete(Long id);
-    Produto findById(Long id);
+    void delete(Integer id);
+    Produto findById(Integer id);
     List<Produto> findAll();
 
-    List<Produto> listarPorAgricultor(Long agricultorId);
+    List<Produto> listarPorAgricultor(Integer agricultorId);
     List<Produto> listarPorCategoria(String categoria);
     List<Produto> listarPorProvinciaOrigem(String provincia);
     List<Produto> listarComStockDisponivel();
-    void reduzirStock(Long produtoId, BigDecimal quantidade);
+    void reduzirStock(Integer produtoId, BigDecimal quantidade);
 }

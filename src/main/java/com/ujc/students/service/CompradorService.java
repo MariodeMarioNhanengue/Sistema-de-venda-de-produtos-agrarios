@@ -7,8 +7,8 @@ public interface CompradorService {
 
     void salvar(Comprador comprador);
     void editar(Comprador comprador);
-    void excluir(Long id);
-    Comprador buscarPorId(Long id);
+    void excluir(Integer id);
+    Comprador buscarPorId(Integer id);
     List<Comprador> buscarTodos();
 
     List<Comprador> buscarPorProvinciaResidencia(String provincia);

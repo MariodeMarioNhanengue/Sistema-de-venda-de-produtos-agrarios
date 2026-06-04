@@ -26,13 +26,13 @@ public class ProdutoServiceImpl implements ProdutoService {
     }
 
     @Override
-    public void excluir(Long id) {
+    public void excluir(Integer id) {
         dao.delete(id);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Produto buscarPorId(Long id) {
+    public Produto buscarPorId(Integer id) {
         return dao.findById(id);
     }
 
@@ -44,7 +44,7 @@ public class ProdutoServiceImpl implements ProdutoService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Produto> listarPorAgricultor(Long agricultorId) {
+    public List<Produto> listarPorAgricultor(Integer agricultorId) {
         return dao.listarPorAgricultor(agricultorId);
     }
 
@@ -67,7 +67,7 @@ public class ProdutoServiceImpl implements ProdutoService {
     }
 
     @Override
-    public void reduzirStock(Long produtoId, BigDecimal quantidade) {
+    public void reduzirStock(Integer produtoId, BigDecimal quantidade) {
         dao.reduzirStock(produtoId, quantidade);
     }
 }

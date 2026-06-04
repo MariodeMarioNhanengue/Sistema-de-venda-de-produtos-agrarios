@@ -25,13 +25,13 @@ public class AgricultorServiceImpl implements AgricultorService {
     }
 
     @Override
-    public void excluir(Long id) {
+    public void excluir(Integer id) {
         dao.delete(id);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Agricultor buscarPorId(Long id) {
+    public Agricultor buscarPorId(Integer id) {
         return dao.findById(id);
     }
 

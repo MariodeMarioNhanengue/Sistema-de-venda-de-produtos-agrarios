@@ -8,13 +8,13 @@ public interface ProdutoService {
 
     void salvar(Produto produto);
     void editar(Produto produto);
-    void excluir(Long id);
-    Produto buscarPorId(Long id);
+    void excluir(Integer id);
+    Produto buscarPorId(Integer id);
     List<Produto> buscarTodos();
 
-    List<Produto> listarPorAgricultor(Long agricultorId);
+    List<Produto> listarPorAgricultor(Integer agricultorId);
     List<Produto> listarPorCategoria(String categoria);
     List<Produto> listarPorProvinciaOrigem(String provincia);
     List<Produto> listarComStockDisponivel();
-    void reduzirStock(Long produtoId, BigDecimal quantidade);
+    void reduzirStock(Integer produtoId, BigDecimal quantidade);
 }

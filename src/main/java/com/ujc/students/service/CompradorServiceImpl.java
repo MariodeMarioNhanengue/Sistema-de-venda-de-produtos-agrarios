@@ -25,13 +25,13 @@ public class CompradorServiceImpl implements CompradorService {
     }
 
     @Override
-    public void excluir(Long id) {
+    public void excluir(Integer id) {
         dao.delete(id);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Comprador buscarPorId(Long id) {
+    public Comprador buscarPorId(Integer id) {
         return dao.findById(id);
     }
 

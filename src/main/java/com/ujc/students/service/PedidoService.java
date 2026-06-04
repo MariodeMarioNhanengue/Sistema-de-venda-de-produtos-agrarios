@@ -8,13 +8,13 @@ public interface PedidoService {
 
     void salvar(Pedido pedido);
     void editar(Pedido pedido);
-    void excluir(Long id);
-    Pedido buscarPorId(Long id);
+    void excluir(Integer id);
+    Pedido buscarPorId(Integer id);
     List<Pedido> buscarTodos();
 
     void criarPedido(Pedido pedido);
-    void actualizarEstado(Long pedidoId, EstadoPedido novoEstado);
-    void cancelarPedido(Long pedidoId);
-    List<Pedido> listarPorComprador(Long compradorId);
+    void actualizarEstado(Integer pedidoId, EstadoPedido novoEstado);
+    void cancelarPedido(Integer pedidoId);
+    List<Pedido> listarPorComprador(Integer compradorId);
     List<Pedido> listarPorEstado(EstadoPedido estado);
 }

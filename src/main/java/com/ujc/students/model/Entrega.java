@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 @SuppressWarnings("serial")
 @Entity
 @Table(name = "entregas")
-public class Entrega extends AbstractEntity<Long> {
+public class Entrega extends AbstractEntity<Integer> {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pedido_id", nullable = false, unique = true)

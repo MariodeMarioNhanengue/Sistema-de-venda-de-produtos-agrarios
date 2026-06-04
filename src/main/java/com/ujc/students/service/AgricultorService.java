@@ -7,8 +7,8 @@ public interface AgricultorService {
 
     void salvar(Agricultor agricultor);
     void editar(Agricultor agricultor);
-    void excluir(Long id);
-    Agricultor buscarPorId(Long id);
+    void excluir(Integer id);
+    Agricultor buscarPorId(Integer id);
     List<Agricultor> buscarTodos();
 
     List<Agricultor> buscarPorProvincia(String provincia);
