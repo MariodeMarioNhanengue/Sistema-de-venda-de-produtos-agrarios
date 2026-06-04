@@ -8,7 +8,7 @@ import java.lang.reflect.*;
 
 import jakarta.persistence.*;
 
-public abstract class AbstractDto<T, PK extends Serializable> {
+public abstract class AbstractDao<T, PK extends Serializable> {
 	    @SuppressWarnings("unchecked")
 	    private final Class<T> entityClass = (Class<T>) 
 	        ( (ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
