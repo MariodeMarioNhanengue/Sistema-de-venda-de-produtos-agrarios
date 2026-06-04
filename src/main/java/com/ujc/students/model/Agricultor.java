@@ -15,9 +15,8 @@ public class Agricultor extends AbstractEntity<Integer> {
 
     @Column(name = "provincia", length = 100)
     private String provincia;
-
     @Enumerated(EnumType.STRING)
-    @Column(name = "genero")
+    @Column(name = "genero", length = 20)
     private Genero genero;
 
     @Column(name = "distrito", length = 100)
