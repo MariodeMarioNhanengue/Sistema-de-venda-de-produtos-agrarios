@@ -17,8 +17,22 @@ public class PedidoDaoImpl extends AbstractDao<Pedido, Integer> implements Pedid
     @Override
     public void criarPedido(Pedido pedido) {
         Produto produto = pedido.getProduto();
-        if (produto == null)
+        if (produto == null || produto.getId() == null)
             throw new IllegalArgumentException("Produto não pode ser nulo.");
+
+        // Faz detach do proxy incompleto (vindo do JSON) para evitar que o
+        // EntityManager devolva o mesmo objecto sem dados do cache L1
+        if (getEntityManager().contains(produto)) {
+            getEntityManager().detach(produto);
+        }
+
+        // Carrega o produto completo da BD para garantir que precoUnitario está disponível
+        Integer produtoId = produto.getId();
+        produto = produtoDao.findById(produtoId);
+        if (produto == null)
+            throw new IllegalArgumentException("Produto não encontrado: " + produtoId);
+
+        pedido.setProduto(produto);
         BigDecimal valorTotal = produto.getPrecoUnitario().multiply(pedido.getQuantidade());
         pedido.setValorTotal(valorTotal);
         pedido.setEstado(EstadoPedido.PENDENTE);
