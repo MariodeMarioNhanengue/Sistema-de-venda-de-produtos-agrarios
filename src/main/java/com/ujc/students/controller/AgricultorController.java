@@ -40,10 +40,12 @@ public class AgricultorController {
         return ResponseEntity.ok(lista);
     }
 
-    // POST /agricultor — Registar agricultor
+
+    // POST /agricultor/batch — Registar de agricultores
+
     @PostMapping
-    public ResponseEntity<Void> registar(@RequestBody Agricultor agricultor) {
-        service.salvar(agricultor);
+    public ResponseEntity<Void> registar(@RequestBody List<Agricultor> agricultores) {
+        agricultores.forEach(service::salvar);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
