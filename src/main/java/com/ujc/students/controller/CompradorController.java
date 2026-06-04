@@ -47,9 +47,9 @@ public class CompradorController {
         return ResponseEntity.ok(lista);
     }
 
-    // POST /comprador — Cadastro de um comprador
-    @PostMapping()
-    public ResponseEntity<Void> cadastrarVarios(@RequestBody List<Comprador> compradores) {
+    // POST /comprador — Cadastro de compradores
+    @PostMapping
+    public ResponseEntity<Void> cadastrar(@RequestBody List<Comprador> compradores) {
         compradores.forEach(service::salvar);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
