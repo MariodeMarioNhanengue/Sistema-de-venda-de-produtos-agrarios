@@ -1,13 +1,15 @@
 # Sistema de Venda Interprovincial de Produtos Agrários
+
 API REST desenvolvida com Spring Boot para gestão da comercialização de produtos agrários entre províncias de Moçambique.
 
 ## Tecnologias
+
 - Java 17
 - Spring Boot 4.0.6
-- Spring Security + JWT
+- Spring Security + JWT (jjwt 0.11.5)
 - Spring Data JPA / Hibernate
-- MySQL
-- Maven
+- MySQL 8+
+- Maven 3.8+
 
 ## Configuração
 
@@ -22,24 +24,30 @@ API REST desenvolvida com Spring Boot para gestão da comercialização de produ
 A base de dados `agro_gestao` é criada automaticamente ao iniciar a aplicação.
 
 ### application.properties
+
 properties
 spring.application.name=Sistema_De_Venda_Interprovincial_De_Produtos_Agrarios
 server.port=9010
 
+# Conexão MySQL
 spring.datasource.url=jdbc:mysql://localhost:3306/agro_gestao?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
 spring.datasource.username=root
 spring.datasource.password=suapassword
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 
+# JPA / Hibernate
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
 
+
 ## Iniciar o projecto
+
 bash
 mvn spring-boot:run
-A API fica disponível em `http://localhost:9010`.
 
----
+A API fica disponível em `http://localhost:9010`.
 
 ## Autenticação
 
@@ -55,13 +63,13 @@ A API usa **JWT (JSON Web Token)**. Todos os endpoints (excepto `/auth/login` e 
 
 ### Registar utilizador
 POST /auth/registar
+
 json
 {
   "username": "admin",
   "password": "admin123",
   "perfil": "ADMIN"
 }
-
 
 ### Login
 POST /auth/login
@@ -72,7 +80,6 @@ json
   "password": "admin123"
 }
 
-
 **Resposta:**
 json
 {
@@ -81,12 +88,9 @@ json
   "username": "admin"
 }
 
-
-Use o token em todas as chamadas no header:
+Use o token em todas as chamadas seguintes no header:
 
 Authorization: Bearer {token}
-
-
 ---
 
 ## Endpoints
@@ -136,34 +140,40 @@ Authorization: Bearer {token}
 |---|---|---|
 | GET | `/pedido` | Listar todos |
 | GET | `/pedido/{id}` | Buscar por ID |
-| GET | `/pedido/nome_produto/{nomeProduto}` | Buscar por nome do produto |
+| GET | `/pedido/{nomeProduto}` | Buscar por nome do produto (pesquisa parcial) |
 | POST | `/pedido` | Criar (aceita array) |
 | PUT | `/pedido/{id}` | Actualizar / Aprovar |
+
+**Estados do pedido:** `PENDENTE` → `APROVADO` → `EM_TRANSPORTE` → `ENTREGUE` / `CANCELADO`
 
 ### Entregas
 
 | Método | Endpoint | Descrição |
 |---|---|---|
 | GET | `/entrega` | Listar todas |
-| GET | `/entrega/{data_pedido}` | Buscar por data (YYYY-MM-DD) |
-| GET | `/entrega/{provincia_destino}` | Buscar por província de destino |
+| GET | `/entrega/{valor}` | Buscar por data (YYYY-MM-DD) ou por província de destino |
 | POST | `/entrega` | Criar (pedido deve estar APROVADO) |
 | PUT | `/entrega/{id}/confirmar` | Confirmar entrega |
 
+**Estados da entrega:** `PENDENTE` → `EM_TRANSPORTE` → `ENTREGUE` / `CANCELADA`
+
+---
 
 ## Fluxo de utilização
+
 1. Registar agricultores   → POST /agricultor
 2. Registar compradores    → POST /comprador
 3. Registar produtos       → POST /produto
 4. Criar pedidos           → POST /pedido
-5. Aprovar pedidos         → PUT /pedido/{id}  (estado: APROVADO)
+5. Aprovar pedidos         → PUT /pedido/{id}   (estado: APROVADO)
 6. Criar entregas          → POST /entrega
-7. Confirmar entregas      → PUT /entrega/{id}/confirmar
 
+---
 
-## Exemplo de dados
+## Modelos de dados
 
 ### Agricultor
+
 json
 [{
   "nome": "António",
@@ -174,6 +184,8 @@ json
   "telefone": "84 111 2233"
 }]
 
+
+**Valores de `genero`:** `MASCULINO`, `FEMININO`, `OUTRO`
 
 ### Comprador
 json
@@ -186,6 +198,7 @@ json
 }]
 
 ### Produto
+
 json
 [{
   "agricultor": { "id": 1 },
@@ -194,10 +207,12 @@ json
   "quantidadeDisponivel": 500.00,
   "unidadeMedida": "kg",
   "precoUnitario": 25.00,
-  "provinciaOrigem": "Maputo"
+  "provinciaOrigem": "Maputo",
+  "imagem": "https://exemplo.com/imagem.jpg"
 }]
 
 ### Pedido
+
 json
 [{
   "comprador": { "id": 1 },
@@ -206,7 +221,10 @@ json
 }]
 
 
+> O `valorTotal` e a `dataPedido` são calculados automaticamente. O estado inicial é `PENDENTE`.
+
 ### Entrega
+
 json
 [{
   "pedido": { "id": 1 },
@@ -214,10 +232,33 @@ json
 }]
 
 
+> Apenas pedidos com estado `APROVADO` podem gerar uma entrega.
+
+---
+
+## Estrutura do projecto
+src/main/java/com/ujc/students/
+├── config/          # SecurityConfig (Spring Security + JWT)
+├── controller/      # AgricultorController, CompradorController,
+│                    # ProdutoController, PedidoController,
+│                    # EntregaController, AuthController
+├── dao/             # Interfaces e implementações (AbstractDao)
+├── model/           # Entidades JPA (Agricultor, Comprador, Produto,
+│                    # Pedido, Entrega, Usuario)
+├── security/        # JwtUtil, JwtFilter
+└── service/         # Interfaces e implementações de negócio
+
+
+---
+
 ## Autores
-@Mario de Mario, @Castigo Mata, @Alvaro Hilario
-Prof: momademha@gmail.com
-Curso: Engenharia e Tecnologia de sistemas de informação
-Especialização: Engenharia de Software
-Disciplina: Engenharia de Software
-Ano Lectivo:2026
+
+- @Mario de Mario
+- @Castigo Mata
+- @Alvaro Hilario
+
+**Prof:** momademha@gmail.com  
+**Curso:** Engenharia e Tecnologia de Sistemas de Informação  
+**Especialização:** Engenharia de Software  
+**Disciplina:** Engenharia de Software  
+**Ano Lectivo:** 2026
