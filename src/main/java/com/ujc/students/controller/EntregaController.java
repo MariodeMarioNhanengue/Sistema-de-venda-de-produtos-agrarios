@@ -29,18 +29,28 @@ public class EntregaController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    // GET /entrega/{data_pedido} — Consultar entregas por data do pedido (formato: YYYY-MM-DD)
+    // PUT /entrega/{id}/confirmar — Confirmar entrega (estado → ENTREGUE, pedido → ENTREGUE)
+    @PutMapping("/{id}/confirmar")
+    public ResponseEntity<Void> confirmar(@PathVariable Integer id) {
+        Entrega existente = service.buscarPorId(id);
+        if (existente == null) {
+            return ResponseEntity.notFound().build();
+        }
+        service.confirmarEntrega(id);
+        return ResponseEntity.ok().build();
+    }
+
+    // GET /entrega/{data_pedido} — Consultar por data (YYYY-MM-DD) ou por província
     @GetMapping("/{data_pedido}")
-    public ResponseEntity<List<Entrega>> buscarPorDataPedido(@PathVariable("data_pedido") String dataPedido) {
-        // Tenta interpretar como data (YYYY-MM-DD); se não corresponder, trata como província
-        if (dataPedido.matches("\\d{4}-\\d{2}-\\d{2}")) {
+    public ResponseEntity<List<Entrega>> buscarPorDataOuProvincia(
+            @PathVariable("data_pedido") String valor) {
+        if (valor.matches("\\d{4}-\\d{2}-\\d{2}")) {
             List<Entrega> lista = service.buscarTodos().stream()
                 .filter(e -> e.getDataPedido() != null &&
-                             e.getDataPedido().toLocalDate().toString().equals(dataPedido))
+                             e.getDataPedido().toLocalDate().toString().equals(valor))
                 .toList();
             return ResponseEntity.ok(lista);
         }
-        // GET /entrega/{provincia_destino} — Consultar entregas por província de destino
-        return ResponseEntity.ok(service.listarPorProvinciaDestino(dataPedido));
+        return ResponseEntity.ok(service.listarPorProvinciaDestino(valor));
     }
 }
