@@ -8,8 +8,11 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -28,31 +31,40 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
 
-                // Login e registo públicos
+                // ── Público ───────────────────────────────────────────────────
                 .requestMatchers("/auth/login", "/auth/registar").permitAll()
 
-                // ADMIN — acesso total
-                .requestMatchers("/**").hasRole("ADMIN")
+                // ── ADMIN — gere compradores e agricultores ───────────────────
+                .requestMatchers("/comprador/**").hasAnyRole("ADMIN", "COMPRADOR")
+                .requestMatchers("/agricultor/**").hasRole("ADMIN")
 
-                // AGRICULTOR — gerir produtos e pedidos
-                .requestMatchers(HttpMethod.GET,    "/produto/**").hasAnyRole("AGRICULTOR", "COMPRADOR")
-                .requestMatchers(HttpMethod.POST,   "/produto/**").hasRole("AGRICULTOR")
-                .requestMatchers(HttpMethod.PUT,    "/produto/**").hasRole("AGRICULTOR")
-                .requestMatchers(HttpMethod.DELETE, "/produto/**").hasRole("AGRICULTOR")
-                .requestMatchers(HttpMethod.GET,    "/pedido/**").hasAnyRole("AGRICULTOR", "COMPRADOR")
-                .requestMatchers(HttpMethod.PUT,    "/pedido/**").hasRole("AGRICULTOR")
-                .requestMatchers(HttpMethod.GET,    "/entrega/**").hasAnyRole("AGRICULTOR", "COMPRADOR")
-                .requestMatchers(HttpMethod.PUT,    "/entrega/**").hasRole("AGRICULTOR")
+                // ── AGRICULTOR — gere produtos e pedidos ─────────────────────
+                .requestMatchers(HttpMethod.GET,    "/produto/**").hasAnyRole("ADMIN", "AGRICULTOR", "COMPRADOR")
+                .requestMatchers(HttpMethod.POST,   "/produto/**").hasAnyRole("ADMIN", "AGRICULTOR")
+                .requestMatchers(HttpMethod.PUT,    "/produto/**").hasAnyRole("ADMIN", "AGRICULTOR")
+                .requestMatchers(HttpMethod.DELETE, "/produto/**").hasAnyRole("ADMIN", "AGRICULTOR")
 
-                // COMPRADOR — efectuar compras
-                .requestMatchers(HttpMethod.POST,   "/pedido/**").hasRole("COMPRADOR")
-                .requestMatchers(HttpMethod.POST,   "/entrega/**").hasRole("COMPRADOR")
+                // ── COMPRADOR — pesquisa e compra ─────────────────────────────
+                .requestMatchers(HttpMethod.GET,    "/pedido/**").hasAnyRole("ADMIN", "AGRICULTOR", "COMPRADOR")
+                .requestMatchers(HttpMethod.POST,   "/pedido/**").hasAnyRole("ADMIN", "COMPRADOR")
+                .requestMatchers(HttpMethod.PUT,    "/pedido/**").hasAnyRole("ADMIN", "AGRICULTOR")
 
+                .requestMatchers(HttpMethod.GET,    "/entrega/**").hasAnyRole("ADMIN", "AGRICULTOR", "COMPRADOR")
+                .requestMatchers(HttpMethod.POST,   "/entrega/**").hasAnyRole("ADMIN", "COMPRADOR")
+                .requestMatchers(HttpMethod.PUT,    "/entrega/**").hasAnyRole("ADMIN", "AGRICULTOR")
+
+                // ── Qualquer outro endpoint exige autenticação ────────────────
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    // Suprime o "Using generated security password" — JWT trata da autenticação
+    @Bean
+    public UserDetailsService userDetailsService() {
+        return new InMemoryUserDetailsManager();
     }
 
     @Bean
