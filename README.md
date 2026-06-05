@@ -216,6 +216,7 @@ json
 
 ## Autores
 @Mario de Mario, @Castigo Mata, @Alvaro Hilario
+Prof: momademha@gmail.com
 Curso: Engenharia e Tecnologia de sistemas de informação
 Especialização: Engenharia de Software
 Disciplina: Engenharia de Software
