@@ -34,6 +34,16 @@ public class SecurityConfig {
                 // ── Público ───────────────────────────────────────────────────
                 .requestMatchers("/auth/login", "/auth/registar").permitAll()
 
+                // ── Swagger / OpenAPI ─────────────────────────────────────────
+                .requestMatchers(
+                    "/swagger-ui.html",
+                    "/swagger-ui/**",
+                    "/api-docs",
+                    "/api-docs/**",
+                    "/v3/api-docs",
+                    "/v3/api-docs/**"
+                ).permitAll()
+
                 // ── ADMIN — gere compradores e agricultores ───────────────────
                 .requestMatchers("/comprador/**").hasAnyRole("ADMIN", "COMPRADOR")
                 .requestMatchers("/agricultor/**").hasRole("ADMIN")
