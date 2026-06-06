@@ -1,0 +1,921 @@
+openapi: 3.0.3
+info:
+  title: Sistema de Venda Interprovincial de Produtos Agrários
+  description: |
+    API REST para gestão de venda interprovincial de produtos agrários em Moçambique.
+
+    ## Autenticação
+    A API utiliza **JWT (Bearer Token)**. Para aceder aos endpoints protegidos:
+    1. Faça login em `POST /auth/login` para obter o token.
+    2. Inclua o token no cabeçalho: `Authorization: Bearer <token>`
+
+    ## Perfis de Acesso
+    | Perfil     | Permissões |
+    |------------|-----------|
+    | `ADMIN`    | Acesso total a todos os recursos |
+    | `AGRICULTOR` | Gerir produtos, consultar pedidos e entregas, actualizar estado de pedidos/entregas |
+    | `COMPRADOR`  | Gerir compradores, criar pedidos e entregas, consultar produtos |
+
+  version: 1.0.0
+  contact:
+    name: UJC Students
+servers:
+  - url: http://localhost:8080
+    description: Servidor de desenvolvimento
+
+tags:
+  - name: Autenticação
+    description: Login e registo de utilizadores
+  - name: Agricultores
+    description: Gestão de agricultores (apenas ADMIN)
+  - name: Compradores
+    description: Gestão de compradores (ADMIN e COMPRADOR)
+  - name: Produtos
+    description: Gestão de produtos agrários
+  - name: Pedidos
+    description: Gestão de pedidos de compra
+  - name: Entregas
+    description: Gestão de entregas interprovinciais
+
+security:
+  - bearerAuth: []
+
+paths:
+
+  # ─── AUTH ────────────────────────────────────────────────────────────────────
+
+  /auth/login:
+    post:
+      tags: [Autenticação]
+      summary: Fazer login
+      description: Autentica o utilizador e devolve um JWT válido por 24 horas.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              username: admin
+              password: "123456"
+      responses:
+        '200':
+          description: Login bem-sucedido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              example:
+                token: "eyJhbGciOiJIUzI1NiJ9..."
+                perfil: ADMIN
+                username: admin
+        '401':
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+              example:
+                erro: "Credenciais inválidas"
+
+  /auth/registar:
+    post:
+      tags: [Autenticação]
+      summary: Registar novo utilizador
+      description: Cria um novo utilizador no sistema. A password é armazenada com BCrypt.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UsuarioRequest'
+            example:
+              username: joao.silva
+              password: "senha123"
+              perfil: AGRICULTOR
+      responses:
+        '201':
+          description: Utilizador criado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mensagem:
+                    type: string
+              example:
+                mensagem: "Utilizador criado com sucesso"
+
+  # ─── AGRICULTOR ──────────────────────────────────────────────────────────────
+
+  /agricultor:
+    get:
+      tags: [Agricultores]
+      summary: Listar todos os agricultores
+      description: Devolve a lista completa de agricultores registados. Requer perfil **ADMIN**.
+      responses:
+        '200':
+          description: Lista de agricultores
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Agricultor'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      tags: [Agricultores]
+      summary: Registar um ou vários agricultores
+      description: Cria um ou mais agricultores em batch. Requer perfil **ADMIN**.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/AgricultorRequest'
+            example:
+              - nome: Maria
+                apelido: Machava
+                provincia: Maputo
+                distrito: Matola
+                genero: FEMININO
+                telefone: "843000001"
+      responses:
+        '201':
+          description: Agricultores criados com sucesso
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /agricultor/{id}:
+    get:
+      tags: [Agricultores]
+      summary: Consultar agricultor por ID
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: Agricultor encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agricultor'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Agricultores]
+      summary: Actualizar dados de um agricultor
+      description: Actualiza todos os campos do agricultor. Requer perfil **ADMIN**.
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgricultorRequest'
+      responses:
+        '200':
+          description: Agricultor actualizado com sucesso
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Agricultores]
+      summary: Remover agricultor
+      description: Remove um agricultor do sistema. Requer perfil **ADMIN**.
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '204':
+          description: Agricultor removido com sucesso
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /agricultor/provincia/{provincia}:
+    get:
+      tags: [Agricultores]
+      summary: Consultar agricultores por província
+      description: Devolve todos os agricultores de uma determinada província. Requer perfil **ADMIN**.
+      parameters:
+        - name: provincia
+          in: path
+          required: true
+          schema:
+            type: string
+          example: Maputo
+      responses:
+        '200':
+          description: Lista de agricultores da província
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Agricultor'
+
+  # ─── COMPRADOR ───────────────────────────────────────────────────────────────
+
+  /comprador:
+    get:
+      tags: [Compradores]
+      summary: Listar todos os compradores
+      description: Requer perfil **ADMIN** ou **COMPRADOR**.
+      responses:
+        '200':
+          description: Lista de compradores
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comprador'
+
+    post:
+      tags: [Compradores]
+      summary: Cadastrar um ou vários compradores
+      description: Cria um ou mais compradores em batch. Requer perfil **ADMIN** ou **COMPRADOR**.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CompradorRequest'
+            example:
+              - nomeEmpresa: AgroTrader Lda
+                nomeResponsavel: António Silva
+                telefone: "821234567"
+                provinciaResidencia: Sofala
+                distritoResidencia: Beira
+      responses:
+        '201':
+          description: Compradores criados com sucesso
+
+  /comprador/{id}:
+    get:
+      tags: [Compradores]
+      summary: Consultar comprador por ID
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: Comprador encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comprador'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Compradores]
+      summary: Actualizar dados de um comprador
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompradorRequest'
+      responses:
+        '200':
+          description: Comprador actualizado com sucesso
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Compradores]
+      summary: Remover comprador
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '204':
+          description: Comprador removido com sucesso
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /comprador/provincia/{provincia}:
+    get:
+      tags: [Compradores]
+      summary: Consultar compradores por província de residência
+      parameters:
+        - name: provincia
+          in: path
+          required: true
+          schema:
+            type: string
+          example: Sofala
+      responses:
+        '200':
+          description: Lista de compradores da província
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comprador'
+
+  /comprador/empresa/{nomeEmpresa}:
+    get:
+      tags: [Compradores]
+      summary: Consultar compradores por nome de empresa
+      description: Pesquisa parcial e insensível a maiúsculas/minúsculas.
+      parameters:
+        - name: nomeEmpresa
+          in: path
+          required: true
+          schema:
+            type: string
+          example: AgroTrader
+      responses:
+        '200':
+          description: Lista de compradores com esse nome de empresa
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comprador'
+
+  # ─── PRODUTO ─────────────────────────────────────────────────────────────────
+
+  /produto:
+    get:
+      tags: [Produtos]
+      summary: Listar todos os produtos
+      description: Acessível por **ADMIN**, **AGRICULTOR** e **COMPRADOR**.
+      responses:
+        '200':
+          description: Lista de produtos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Produto'
+
+    post:
+      tags: [Produtos]
+      summary: Registar um ou vários produtos
+      description: Requer perfil **ADMIN** ou **AGRICULTOR**.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ProdutoRequest'
+            example:
+              - agricultor:
+                  id: 1
+                nomeProduto: Tomate
+                categoria: Horticultura
+                quantidadeDisponivel: 500.00
+                unidadeMedida: kg
+                precoUnitario: 45.00
+                provinciaOrigem: Gaza
+      responses:
+        '201':
+          description: Produtos registados com sucesso
+
+  /produto/{id}:
+    get:
+      tags: [Produtos]
+      summary: Consultar produto por ID
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: Produto encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Produto'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Produtos]
+      summary: Actualizar dados de um produto
+      description: Requer perfil **ADMIN** ou **AGRICULTOR**.
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProdutoRequest'
+      responses:
+        '200':
+          description: Produto actualizado com sucesso
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Produtos]
+      summary: Remover produto
+      description: Requer perfil **ADMIN** ou **AGRICULTOR**.
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '204':
+          description: Produto removido com sucesso
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ─── PEDIDO ──────────────────────────────────────────────────────────────────
+
+  /pedido:
+    get:
+      tags: [Pedidos]
+      summary: Listar todos os pedidos
+      description: Acessível por **ADMIN**, **AGRICULTOR** e **COMPRADOR**.
+      responses:
+        '200':
+          description: Lista de pedidos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Pedido'
+
+    post:
+      tags: [Pedidos]
+      summary: Criar um ou vários pedidos
+      description: |
+        Cria pedidos em batch. O `valorTotal` é calculado automaticamente
+        (`precoUnitario × quantidade`) e o estado inicial é **PENDENTE**.
+        O stock do produto é reduzido automaticamente.
+        Requer perfil **ADMIN** ou **COMPRADOR**.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/PedidoRequest'
+            example:
+              - comprador:
+                  id: 1
+                produto:
+                  id: 2
+                quantidade: 100.00
+      responses:
+        '201':
+          description: Pedidos criados com sucesso
+
+  /pedido/{id}:
+    put:
+      tags: [Pedidos]
+      summary: Actualizar pedido (incluindo estado)
+      description: |
+        Permite actualizar o estado do pedido. Ciclo de estados:
+        `PENDENTE → APROVADO → EM_TRANSPORTE → ENTREGUE`
+        Requer perfil **ADMIN** ou **AGRICULTOR**.
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedidoRequest'
+            example:
+              comprador:
+                id: 1
+              produto:
+                id: 2
+              quantidade: 100.00
+              estado: APROVADO
+      responses:
+        '200':
+          description: Pedido actualizado com sucesso
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /pedido/{nome_produto}:
+    get:
+      tags: [Pedidos]
+      summary: Consultar pedidos por nome de produto
+      description: Pesquisa parcial e insensível a maiúsculas/minúsculas no nome do produto.
+      parameters:
+        - name: nome_produto
+          in: path
+          required: true
+          schema:
+            type: string
+          example: Tomate
+      responses:
+        '200':
+          description: Lista de pedidos que contêm esse produto
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Pedido'
+
+  # ─── ENTREGA ─────────────────────────────────────────────────────────────────
+
+  /entrega:
+    get:
+      tags: [Entregas]
+      summary: Listar todas as entregas
+      description: Acessível por **ADMIN**, **AGRICULTOR** e **COMPRADOR**.
+      responses:
+        '200':
+          description: Lista de entregas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Entrega'
+
+    post:
+      tags: [Entregas]
+      summary: Criar uma ou várias entregas
+      description: |
+        O pedido associado **deve estar no estado APROVADO**.
+        Ao criar a entrega, o estado do pedido passa automaticamente para **EM_TRANSPORTE**
+        e o estado da entrega é definido como **PENDENTE**.
+        Requer perfil **ADMIN** ou **COMPRADOR**.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/EntregaRequest'
+            example:
+              - pedido:
+                  id: 3
+                provinciaDestino: Sofala
+      responses:
+        '201':
+          description: Entregas criadas com sucesso
+        '400':
+          description: Pedido não está APROVADO ou não foi encontrado
+
+  /entrega/{id}/confirmar:
+    put:
+      tags: [Entregas]
+      summary: Confirmar entrega
+      description: |
+        Marca a entrega como **ENTREGUE** e actualiza o pedido associado para **ENTREGUE**.
+        A `dataEntrega` é registada automaticamente.
+        Requer perfil **ADMIN** ou **AGRICULTOR**.
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: Entrega confirmada com sucesso
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /entrega/{valor}:
+    get:
+      tags: [Entregas]
+      summary: Consultar entregas por data ou por província
+      description: |
+        - Se o valor tiver o formato `YYYY-MM-DD`, filtra por data do pedido.
+        - Caso contrário, trata o valor como nome de província de destino.
+      parameters:
+        - name: valor
+          in: path
+          required: true
+          schema:
+            type: string
+          examples:
+            porData:
+              summary: Por data
+              value: "2025-06-01"
+            porProvincia:
+              summary: Por província
+              value: "Sofala"
+      responses:
+        '200':
+          description: Lista de entregas filtradas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Entrega'
+
+# ─── COMPONENTS ──────────────────────────────────────────────────────────────
+
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    IdPath:
+      name: id
+      in: path
+      required: true
+      description: Identificador único do recurso
+      schema:
+        type: integer
+        format: int32
+        example: 1
+
+  responses:
+    NotFound:
+      description: Recurso não encontrado
+    Forbidden:
+      description: Sem permissão para aceder a este recurso
+
+  schemas:
+
+    # ── Auth ──────────────────────────────────────────────────────────────────
+
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          example: admin
+        password:
+          type: string
+          format: password
+          example: "123456"
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT válido por 24 horas
+        perfil:
+          type: string
+          enum: [ADMIN, AGRICULTOR, COMPRADOR]
+        username:
+          type: string
+
+    UsuarioRequest:
+      type: object
+      required: [username, password, perfil]
+      properties:
+        username:
+          type: string
+          example: joao.silva
+        password:
+          type: string
+          format: password
+          example: "senha123"
+        perfil:
+          type: string
+          enum: [ADMIN, AGRICULTOR, COMPRADOR]
+          example: AGRICULTOR
+
+    ErroResponse:
+      type: object
+      properties:
+        erro:
+          type: string
+
+    # ── Agricultor ───────────────────────────────────────────────────────────
+
+    AgricultorRequest:
+      type: object
+      required: [nome, apelido]
+      properties:
+        nome:
+          type: string
+          maxLength: 100
+          example: Maria
+        apelido:
+          type: string
+          maxLength: 100
+          example: Machava
+        provincia:
+          type: string
+          maxLength: 100
+          example: Maputo
+        distrito:
+          type: string
+          maxLength: 100
+          example: Matola
+        genero:
+          type: string
+          enum: [MASCULINO, FEMININO, OUTRO]
+          example: FEMININO
+        telefone:
+          type: string
+          maxLength: 20
+          example: "843000001"
+
+    Agricultor:
+      allOf:
+        - $ref: '#/components/schemas/AgricultorRequest'
+        - type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+
+    # ── Comprador ────────────────────────────────────────────────────────────
+
+    CompradorRequest:
+      type: object
+      required: [nomeEmpresa, nomeResponsavel]
+      properties:
+        nomeEmpresa:
+          type: string
+          maxLength: 150
+          example: AgroTrader Lda
+        nomeResponsavel:
+          type: string
+          maxLength: 150
+          example: António Silva
+        telefone:
+          type: string
+          maxLength: 20
+          example: "821234567"
+        provinciaResidencia:
+          type: string
+          maxLength: 100
+          example: Sofala
+        distritoResidencia:
+          type: string
+          maxLength: 100
+          example: Beira
+
+    Comprador:
+      allOf:
+        - $ref: '#/components/schemas/CompradorRequest'
+        - type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+
+    # ── Produto ──────────────────────────────────────────────────────────────
+
+    ProdutoRequest:
+      type: object
+      required: [agricultor, nomeProduto]
+      properties:
+        agricultor:
+          type: object
+          required: [id]
+          properties:
+            id:
+              type: integer
+              example: 1
+        nomeProduto:
+          type: string
+          maxLength: 150
+          example: Tomate
+        categoria:
+          type: string
+          maxLength: 100
+          example: Horticultura
+        quantidadeDisponivel:
+          type: number
+          format: decimal
+          example: 500.00
+        unidadeMedida:
+          type: string
+          maxLength: 30
+          example: kg
+        precoUnitario:
+          type: number
+          format: decimal
+          example: 45.00
+        provinciaOrigem:
+          type: string
+          maxLength: 100
+          example: Gaza
+        imagem:
+          type: string
+          maxLength: 500
+          example: "https://exemplo.com/tomate.jpg"
+
+    Produto:
+      allOf:
+        - $ref: '#/components/schemas/ProdutoRequest'
+        - type: object
+          properties:
+            id:
+              type: integer
+              example: 2
+
+    # ── Pedido ───────────────────────────────────────────────────────────────
+
+    PedidoRequest:
+      type: object
+      required: [comprador, produto, quantidade]
+      properties:
+        comprador:
+          type: object
+          required: [id]
+          properties:
+            id:
+              type: integer
+              example: 1
+        produto:
+          type: object
+          required: [id]
+          properties:
+            id:
+              type: integer
+              example: 2
+        quantidade:
+          type: number
+          format: decimal
+          example: 100.00
+        estado:
+          type: string
+          enum: [PENDENTE, APROVADO, EM_TRANSPORTE, ENTREGUE, CANCELADO]
+          description: Usado apenas no PUT para actualizar o estado
+
+    Pedido:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 3
+        comprador:
+          $ref: '#/components/schemas/Comprador'
+        produto:
+          $ref: '#/components/schemas/Produto'
+        quantidade:
+          type: number
+          example: 100.00
+        valorTotal:
+          type: number
+          description: Calculado automaticamente (precoUnitario × quantidade)
+          example: 4500.00
+        dataPedido:
+          type: string
+          format: date-time
+          example: "2025-06-04T10:30:00"
+        estado:
+          type: string
+          enum: [PENDENTE, APROVADO, EM_TRANSPORTE, ENTREGUE, CANCELADO]
+          example: PENDENTE
+
+    # ── Entrega ──────────────────────────────────────────────────────────────
+
+    EntregaRequest:
+      type: object
+      required: [pedido]
+      properties:
+        pedido:
+          type: object
+          required: [id]
+          properties:
+            id:
+              type: integer
+              example: 3
+        provinciaDestino:
+          type: string
+          maxLength: 100
+          example: Sofala
+
+    Entrega:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        pedido:
+          $ref: '#/components/schemas/Pedido'
+        provinciaDestino:
+          type: string
+          example: Sofala
+        dataPedido:
+          type: string
+          format: date-time
+          description: Data em que a entrega foi criada
+          example: "2025-06-05T08:00:00"
+        dataEntrega:
+          type: string
+          format: date-time
+          description: Data de confirmação da entrega (preenchida ao confirmar)
+          example: "2025-06-06T14:30:00"
+        estadoEntrega:
+          type: string
+          enum: [PENDENTE, EM_TRANSPORTE, ENTREGUE, CANCELADA]
+          example: PENDENTE
