@@ -10,6 +10,7 @@ API REST desenvolvida com Spring Boot para gestão da comercialização de produ
 - Spring Data JPA / Hibernate
 - MySQL 8+
 - Maven 3.8+
+- SpringDoc OpenAPI 2.8.8 (Swagger UI)
 
 ## Configuração
 
@@ -41,6 +42,13 @@ spring.jpa.show-sql=true
 spring.jpa.properties.hibernate.format_sql=true
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
 
+# Swagger / OpenAPI
+springdoc.api-docs.path=/api-docs
+springdoc.swagger-ui.path=/swagger-ui.html
+springdoc.swagger-ui.operationsSorter=alpha
+springdoc.swagger-ui.tagsSorter=alpha
+springdoc.swagger-ui.tryItOutEnabled=true
+springdoc.swagger-ui.filter=true
 
 ## Iniciar o projecto
 
@@ -49,6 +57,38 @@ mvn spring-boot:run
 
 A API fica disponível em `http://localhost:9010`.
 
+---
+
+## Documentação Swagger UI
+
+A documentação interactiva da API está disponível assim que a aplicação estiver em execução:
+
+| URL | Descrição |
+|-----|-----------|
+| `http://localhost:9010/swagger-ui/index.html` | Interface Swagger UI |
+| `http://localhost:9010/api-docs` | Especificação OpenAPI 3.1 (JSON) |
+
+### Como usar o Swagger UI
+
+1. Inicie a aplicação com `mvn spring-boot:run`
+2. Abra `http://localhost:9010/swagger-ui/index.html` no browser
+3. Faça login em `POST /auth/login` para obter o token JWT
+4. Clique no botão **Authorize 🔒** (canto superior direito)
+5. Cole o token no campo `bearerAuth` e clique em **Authorize**
+6. Todos os endpoints ficam desbloqueados para teste directo
+
+### Pré-visualização
+
+A documentação apresenta:
+
+- **Título e versão** da API com badge OAS 3.1
+- **Descrição** com tabela de perfis de acesso
+- **Endpoints agrupados** por controller (agricultor, auth, comprador, produto, pedido, entrega)
+- **Ícone de cadeado 🔒** nos endpoints que requerem autenticação
+- **Try it out** — executa chamadas reais à API directamente no browser
+
+---
+
 ## Autenticação
 
 A API usa **JWT (JSON Web Token)**. Todos os endpoints (excepto `/auth/login` e `/auth/registar`) requerem autenticação.
@@ -56,13 +96,14 @@ A API usa **JWT (JSON Web Token)**. Todos os endpoints (excepto `/auth/login` e 
 ### Perfis
 
 | Perfil | Permissões |
-|---|---|
+|--------|------------|
 | `ADMIN` | Acesso total |
 | `AGRICULTOR` | Gerir produtos, ver e actualizar pedidos e entregas |
 | `COMPRADOR` | Pesquisar produtos, efectuar pedidos e criar entregas |
 
 ### Registar utilizador
-POST /auth/registar
+
+`POST /auth/registar`
 
 json
 {
@@ -72,13 +113,15 @@ json
 }
 
 ### Login
-POST /auth/login
+
+`POST /auth/login`
 
 json
 {
   "username": "admin",
   "password": "admin123"
 }
+
 
 **Resposta:**
 json
@@ -88,72 +131,76 @@ json
   "username": "admin"
 }
 
+
 Use o token em todas as chamadas seguintes no header:
 
+
 Authorization: Bearer {token}
+
+
 ---
 
 ## Endpoints
 
 ### Autenticação
 
-| Método | Endpoint | Descrição |
-|---|---|---|
-| POST | `/auth/login` | Fazer login |
-| POST | `/auth/registar` | Registar utilizador |
+| Método | Endpoint | Acesso | Descrição |
+|--------|----------|--------|-----------|
+| POST | `/auth/login` | Público | Fazer login |
+| POST | `/auth/registar` | Público | Registar utilizador |
 
 ### Agricultores
 
-| Método | Endpoint | Descrição |
-|---|---|---|
-| GET | `/agricultor` | Listar todos |
-| GET | `/agricultor/{id}` | Buscar por ID |
-| GET | `/agricultor/provincia/{provincia}` | Buscar por província |
-| POST | `/agricultor` | Registar (aceita array) |
-| PUT | `/agricultor/{id}` | Actualizar |
-| DELETE | `/agricultor/{id}` | Remover |
+| Método | Endpoint | Acesso | Descrição |
+|--------|----------|--------|-----------|
+| GET | `/agricultor` | ADMIN | Listar todos |
+| GET | `/agricultor/{id}` | ADMIN | Buscar por ID |
+| GET | `/agricultor/provincia/{provincia}` | ADMIN | Buscar por província |
+| POST | `/agricultor` | ADMIN | Registar (aceita array) |
+| PUT | `/agricultor/{id}` | ADMIN | Actualizar |
+| DELETE | `/agricultor/{id}` | ADMIN | Remover |
 
 ### Compradores
 
-| Método | Endpoint | Descrição |
-|---|---|---|
-| GET | `/comprador` | Listar todos |
-| GET | `/comprador/{id}` | Buscar por ID |
-| GET | `/comprador/provincia/{provincia}` | Buscar por província |
-| POST | `/comprador` | Cadastrar (aceita array) |
-| PUT | `/comprador/{id}` | Actualizar |
-| DELETE | `/comprador/{id}` | Remover |
+| Método | Endpoint | Acesso | Descrição |
+|--------|----------|--------|-----------|
+| GET | `/comprador` | ADMIN, COMPRADOR | Listar todos |
+| GET | `/comprador/{id}` | ADMIN, COMPRADOR | Buscar por ID |
+| GET | `/comprador/provincia/{provincia}` | ADMIN, COMPRADOR | Buscar por província |
+| GET | `/comprador/empresa/{nomeEmpresa}` | ADMIN, COMPRADOR | Buscar por empresa |
+| POST | `/comprador` | ADMIN, COMPRADOR | Cadastrar (aceita array) |
+| PUT | `/comprador/{id}` | ADMIN, COMPRADOR | Actualizar |
+| DELETE | `/comprador/{id}` | ADMIN, COMPRADOR | Remover |
 
 ### Produtos
 
-| Método | Endpoint | Descrição |
-|---|---|---|
-| GET | `/produto` | Listar todos |
-| GET | `/produto/{id}` | Buscar por ID |
-| POST | `/produto` | Registar (aceita array) |
-| PUT | `/produto/{id}` | Actualizar |
-| DELETE | `/produto/{id}` | Remover |
+| Método | Endpoint | Acesso | Descrição |
+|--------|----------|--------|-----------|
+| GET | `/produto` | ADMIN, AGRICULTOR, COMPRADOR | Listar todos |
+| GET | `/produto/{id}` | ADMIN, AGRICULTOR, COMPRADOR | Buscar por ID |
+| POST | `/produto` | ADMIN, AGRICULTOR | Registar (aceita array) |
+| PUT | `/produto/{id}` | ADMIN, AGRICULTOR | Actualizar |
+| DELETE | `/produto/{id}` | ADMIN, AGRICULTOR | Remover |
 
 ### Pedidos
 
-| Método | Endpoint | Descrição |
-|---|---|---|
-| GET | `/pedido` | Listar todos |
-| GET | `/pedido/{id}` | Buscar por ID |
-| GET | `/pedido/{nomeProduto}` | Buscar por nome do produto (pesquisa parcial) |
-| POST | `/pedido` | Criar (aceita array) |
-| PUT | `/pedido/{id}` | Actualizar / Aprovar |
+| Método | Endpoint | Acesso | Descrição |
+|--------|----------|--------|-----------|
+| GET | `/pedido` | ADMIN, AGRICULTOR, COMPRADOR | Listar todos |
+| GET | `/pedido/{nomeProduto}` | ADMIN, AGRICULTOR, COMPRADOR | Buscar por nome do produto |
+| POST | `/pedido` | ADMIN, COMPRADOR | Criar (aceita array) |
+| PUT | `/pedido/{id}` | ADMIN, AGRICULTOR | Actualizar / Aprovar |
 
 **Estados do pedido:** `PENDENTE` → `APROVADO` → `EM_TRANSPORTE` → `ENTREGUE` / `CANCELADO`
 
 ### Entregas
 
-| Método | Endpoint | Descrição |
-|---|---|---|
-| GET | `/entrega` | Listar todas |
-| GET | `/entrega/{valor}` | Buscar por data (YYYY-MM-DD) ou por província de destino |
-| POST | `/entrega` | Criar (pedido deve estar APROVADO) |
-| PUT | `/entrega/{id}/confirmar` | Confirmar entrega |
+| Método | Endpoint | Acesso | Descrição |
+|--------|----------|--------|-----------|
+| GET | `/entrega` | ADMIN, AGRICULTOR, COMPRADOR | Listar todas |
+| GET | `/entrega/{valor}` | ADMIN, AGRICULTOR, COMPRADOR | Buscar por data (YYYY-MM-DD) ou província |
+| POST | `/entrega` | ADMIN, COMPRADOR | Criar (pedido deve estar APROVADO) |
+| PUT | `/entrega/{id}/confirmar` | ADMIN, AGRICULTOR | Confirmar entrega |
 
 **Estados da entrega:** `PENDENTE` → `EM_TRANSPORTE` → `ENTREGUE` / `CANCELADA`
 
@@ -161,12 +208,16 @@ Authorization: Bearer {token}
 
 ## Fluxo de utilização
 
-1. Registar agricultores   → POST /agricultor
-2. Registar compradores    → POST /comprador
-3. Registar produtos       → POST /produto
-4. Criar pedidos           → POST /pedido
-5. Aprovar pedidos         → PUT /pedido/{id}   (estado: APROVADO)
-6. Criar entregas          → POST /entrega
+
+1. Registar utilizador   → POST /auth/registar
+2. Fazer login           → POST /auth/login  (guardar token)
+3. Registar agricultores → POST /agricultor
+4. Registar compradores  → POST /comprador
+5. Registar produtos     → POST /produto
+6. Criar pedidos         → POST /pedido
+7. Aprovar pedidos       → PUT  /pedido/{id}   (estado: APROVADO)
+8. Criar entregas        → POST /entrega
+9. Confirmar entregas    → PUT  /entrega/{id}/confirmar
 
 ---
 
@@ -188,6 +239,7 @@ json
 **Valores de `genero`:** `MASCULINO`, `FEMININO`, `OUTRO`
 
 ### Comprador
+
 json
 [{
   "nomeEmpresa": "AgroMaputo Lda",
@@ -196,6 +248,7 @@ json
   "provinciaResidencia": "Maputo",
   "distritoResidencia": "KaMpfumo"
 }]
+
 
 ### Produto
 
@@ -220,7 +273,6 @@ json
   "quantidade": 100.00
 }]
 
-
 > O `valorTotal` e a `dataPedido` são calculados automaticamente. O estado inicial é `PENDENTE`.
 
 ### Entrega
@@ -237,8 +289,10 @@ json
 ---
 
 ## Estrutura do projecto
+
+
 src/main/java/com/ujc/students/
-├── config/          # SecurityConfig (Spring Security + JWT)
+├── config/          # SecurityConfig, OpenApiConfig
 ├── controller/      # AgricultorController, CompradorController,
 │                    # ProdutoController, PedidoController,
 │                    # EntregaController, AuthController
@@ -247,6 +301,10 @@ src/main/java/com/ujc/students/
 │                    # Pedido, Entrega, Usuario)
 ├── security/        # JwtUtil, JwtFilter
 └── service/         # Interfaces e implementações de negócio
+
+src/main/resources/
+├── application.properties
+└── openapi.yaml     # Especificação OpenAPI 3.1
 
 
 ---
